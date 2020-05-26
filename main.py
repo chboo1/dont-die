@@ -22,6 +22,7 @@ class Main():
         self.icon = PhotoImage(file="camera_icon.png")
         self.camicon = self.c.create_image(self.width - 100, self.height - 100, anchor="se", image=self.icon, state="normal")
         self.c.tag_bind(self.camicon, "<Enter>", self.cams_on)
+        self.incama = False
         self.c.tag_bind(self.camicon, "<Leave>", self.cams_off)
         self.root.bind("<Motion>", self.motion)
         self.root.bind("<Escape>", self.kr)
@@ -45,11 +46,15 @@ class Main():
 
     def eachcsec(self):
         self.bowlyattack = randint(0, 500)
+        self.bowlyattack2 = randint(0, 1000)
         self.c.itemconfig(self.text, text=self.bowlyattack)
         if self.bowlyattack == 5:
             self.c.itemconfig(self.currentcam, image=self.bowlycama)
             self.c.itemconfig(self.text, text=self.bowlyattack)
+            self.incama = True
         self.root.after(10, self.eachcsec)
+        if self.incama and self.bowlyattack2 == 1000:
+            pass
 
     def cams_off(self, event=None):
         self.left = True
