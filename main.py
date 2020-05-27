@@ -5,6 +5,7 @@ from random import randint
 class Main():
     def __init__(self):
         self.root = Tk()
+        self.death = False
         self.camson = False
         self.left = True
         self.width = self.root.winfo_screenwidth()
@@ -16,10 +17,11 @@ class Main():
         self.c.pack()
         self.bowlybodyB = PhotoImage(file="bowly_chains.png")
         self.bowlyheadB = PhotoImage(file="bowly_head.png")
-        self.bowlyhead = self.c.create_image(self.width / 2, self.height + 300,
-                                             anchor="c", image=self.bowlyheadB)
         self.c.create_rectangle(0, 0, self.width, self.height, fill="#606060",
                                 outline="#606060")
+        self.bowlyhead = self.c.create_image(self.width / 2, self.height / 2,
+                                             anchor="c", image=self.bowlyheadB,
+                                             state="hidden")
         self.wd = self.width / 1920
         self.hd = self.width / 1080
         self.camm = PhotoImage(file="cammap.png")
@@ -40,9 +42,13 @@ class Main():
         self.incama = False
         self.c.tag_bind(self.camicon, "<Leave>", self.cams_off)
         self.root.bind("<Motion>", self.motion)
+        self.root.bind("d", self.die)
         self.root.bind("<Escape>", self.kr)
         self.root.after(10, self.eachcsec)
         self.root.mainloop()
+
+    def die(self, event=""):
+        self.death = True
 
     def kr(self, event=None):
         self.root.destroy()
@@ -67,11 +73,10 @@ class Main():
             self.incama = True
         if self.incama:
             self.bowlyattack2 = randint(0, 999)
-        if self.incama and self.bowlyattack2 == 5:
+        if (self.incama and self.bowlyattack2 == 5) or self.death:
             self.c.itemconfig(self.currentcam, state="hidden")
             self.c.itemconfig(self.cammap, state="hidden")
-            print("hi")
-            self.c.coords(self.bowlyhead, self.width / 2, self.height / 2)
+            self.c.itemconfig(self.bowlyhead, state="normal")
             self.root.after(5000, self.game_over_screen)
         self.root.after(10, self.eachcsec)
 
