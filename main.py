@@ -5,6 +5,9 @@ from random import randint
 class Main():
     def __init__(self):
         self.youhavewon = False
+        self.sec = 0
+        self.min = 0
+        self.hour = 0
         self.root = Tk()
         self.death = False
         self.camson = False
@@ -18,6 +21,7 @@ class Main():
         self.root.title("Don't die")
         self.bowlyattack2 = 0
         self.c.pack()
+        self.hour = 12
         self.bowlybodyB = PhotoImage(file="bowly_chains.png")
         self.bowlyheadB = PhotoImage(file="bowly_head.png")
         self.background = self.c.create_rectangle(0, 0, self.width,
@@ -38,7 +42,7 @@ class Main():
         self.wd = self.width / 1920
         self.hd = self.width / 1080
         self.camm = PhotoImage(file="cammap.png")
-        self.text = self.c.create_text(15, 15, anchor="nw", text=" 12 PM ")
+        self.text = self.c.create_text(15, 15, anchor="nw", text="12:00")
         self.cama = PhotoImage(file="camA.png")
         self.bowlycama = PhotoImage(file="camAbowly.png")
         self.currentcam = self.c.create_image(0, 0, anchor="nw",
@@ -47,7 +51,7 @@ class Main():
                                           anchor="se", image=self.camm,
                                           state="hidden")
         self.icon = PhotoImage(file="camera_icon.png")
-        self.camicon = self.c.create_image(self.width - 100, self.height - 100,
+        self.camicon = self.c.create_image(self.width - ( self.width / 6 ), self.height - self.height / 9,
                                            anchor="se", image=self.icon,
                                            state="normal")
         self.c.tag_bind(self.camicon, "<Enter>", self.cams_on)
@@ -56,10 +60,8 @@ class Main():
         self.root.bind("<Motion>", self.motion)
         self.root.bind("a", self.closeleft)
         self.root.bind("d", self.closeright)
-        self.root.bind("w", self.WIN)
         self.root.bind("<Escape>", self.kr)
         self.root.after(10, self.eachcsec)
-        self.root.after(3*60*1000, self.WIN)
         self.root.mainloop()
 
     def closeleft(self, event=None):
@@ -98,12 +100,19 @@ class Main():
                 self.camson = False
 
     def eachcsec(self):
-        self.bowlyattack = randint(0, 500)
+        self.sec += 1
+        if self.sec % 187 == 0:
+            self.min += 15
+        if self.min % 60 == 0:
+            self.hour += int(self.min / 60)
+            self.min = 0
+        self.c.itemconfig(self.text, text="{0}:{1}".format(self.hour, self.min))
+        self.bowlyattack = randint(0, 825)
         if self.bowlyattack == 5:
             self.c.itemconfig(self.currentcam, image=self.bowlycama)
             self.incama = True
         if self.incama:
-            self.bowlyattack2 = randint(0, 750)
+            self.bowlyattack2 = randint(0, 675)
         if (self.incama and self.bowlyattack2 == 5 and not self.rdoor_closed)\
                 or self.death:
             self.c.itemconfig(self.currentcam, state="hidden")
@@ -115,6 +124,8 @@ class Main():
             self.c.itemconfig(self.currentcam, image=self.cama)
         if not self.youhavewon:
             self.root.after(10, self.eachcsec)
+        if self.hour == 24:
+            self.WIN()
 
     def cams_off(self, event=None):
         self.left = True
@@ -136,7 +147,7 @@ class Main():
         self.c.tag_unbind(self.camicon, "<Enter>")
         self.c.tag_unbind(self.camicon, "<Leave>")
         self.c.create_text(self.width / 2, self.height / 2, anchor="c",
-                           fill="#ffffff", text="24 PM",
+                           fill="#ffffff", text="24:00",
                            font=("Helvetica", 500))
         self.root.after(10000, self.kr)
 
