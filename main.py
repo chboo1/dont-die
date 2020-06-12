@@ -6,6 +6,10 @@ class Main():
     def __init__(self):
         # Screen, Canvas, etc...
         self.root = Tk()
+        self.width = self.root.winfo_screenwidth()
+        self.height = self.root.winfo_screenheight()
+        self.wd = self.width / 1920
+        self.hd = self.width / 1080
         self.c = Canvas(self.root, width=self.width, height=self.height)
         self.root.geometry("{0}x{1}".format(self.width, self.height))
         self.root.title("Don't die")
@@ -25,17 +29,15 @@ class Main():
         self.ldoor_closed = False
         self.left = True
         self.hour = 12
-        # Usefull variables
-        self.width = self.root.winfo_screenwidth()
-        self.height = self.root.winfo_screenheight()
-        self.wd = self.width / 1920
-        self.hd = self.width / 1080
         # Image references `yay'
         self.bowlybodyB = PhotoImage(file="bowly_chains.png")
         # Unused line /\
         #             |
         #             |
         self.bowlyheadB = PhotoImage(file="bowly_head.png")
+        self.camm = PhotoImage(file="cammap.png")
+        self.cama = PhotoImage(file="camA.png")
+        self.bowlycama = PhotoImage(file="camAbowly.png")
         # Images, text, etc...
         self.background = self.c.create_rectangle(0, 0, self.width,
                                                   self.height, fill="#606060",
@@ -52,14 +54,11 @@ class Main():
         self.bowlyhead = self.c.create_image(self.width / 2, self.height / 2,
                                              anchor="c", image=self.bowlyheadB,
                                              state="hidden")
-        self.camm = PhotoImage(file="cammap.png")
-        self.cama = PhotoImage(file="camA.png")
-        self.bowlycama = PhotoImage(file="camAbowly.png")
         self.currentcam = self.c.create_image(0, 0, anchor="nw",
                                               image=self.cama, state="hidden")
         self.electext = self.c.create_text(15, 45, anchor="nw", text="100%")
         self.text = self.c.create_text(15, 15, anchor="nw", text="12:00")
-        self.cammap = self.c.create_image(self.width - 200, self.height - 200,
+        self.cammap = self.c.create_image(900, self.height,
                                           anchor="se", image=self.camm,
                                           state="hidden")
         self.icon = PhotoImage(file="camera_icon.png")
