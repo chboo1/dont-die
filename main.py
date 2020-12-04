@@ -1,3 +1,4 @@
+from __future__ import division
 from tkinter import Tk, Canvas, PhotoImage
 from random import randint
 
@@ -16,6 +17,7 @@ class Main():
         self.bowlyattack2 = 0
         self.c.pack()
         # initiation of variables
+        self.powergenerator = False
         self.youhavewon = False
         self.electricity = 100
         self.electricity2 = 0
@@ -23,12 +25,13 @@ class Main():
         self.min = 0
         self.hour = 0
         self.usage = 0
-        self.death = False
+        self.dead = False
         self.camson = False
         self.rdoor_closed = False
         self.ldoor_closed = False
         self.left = True
         self.hour = 12
+        self.attackTimer = 0
         # Image references `yay'
         self.bowlybodyB = PhotoImage(file="bowly_chains.png")
         # Unused line /\
@@ -38,6 +41,7 @@ class Main():
         self.camm = PhotoImage(file="cammap.png")
         self.cama = PhotoImage(file="camA.png")
         self.bowlycama = PhotoImage(file="camAbowly.png")
+        # Sound references
         # Images, text, etc...
         self.background = self.c.create_rectangle(0, 0, self.width,
                                                   self.height, fill="#606060",
@@ -66,13 +70,17 @@ class Main():
                                            self.height - self.height / 9,
                                            anchor="se", image=self.icon,
                                            state="normal")
+        self.camaicon = self.c.create_rectangle(740, 880, 830, 940, fill="#808080", outline="#000000", activeoutline="#ffffff", state="hidden")
         self.c.tag_bind(self.camicon, "<Enter>", self.cams_on)
         self.incama = False
         self.c.tag_bind(self.camicon, "<Leave>", self.cams_off)
+        self.root.bind("<space>", lambda e: self.cams_on(e))
         self.root.bind("<Motion>", self.motion)
+        self.root.bind("s", self.solarpanel)
         self.root.bind("a", self.closeleft)
         self.root.bind("d", self.closeright)
         self.root.bind("<Escape>", self.kr)
+        self.root.bind("<Button-1>", self.click)
         self.root.after(10, self.eachcsec)
         self.root.mainloop()
 
@@ -109,17 +117,24 @@ class Main():
             if not self.camson:
                 self.c.itemconfig(self.cammap, state="normal")
                 self.c.itemconfig(self.currentcam, state="normal")
+                self.c.itemconfig(self.camaicon, state="normal")
                 self.usage += 1
                 self.camson = True
             else:
                 self.c.itemconfig(self.currentcam, state="hidden")
                 self.c.itemconfig(self.cammap, state="hidden")
+                self.c.itemconfig(self.camaicon, state="hidden")
                 self.usage -= 1
                 self.camson = False
+            self.cams_off()
 
     def eachcsec(self):
+        if self.incama is True:
+            self.attackTimer += 1
         self.sec += 1
         self.electricity2 += 1
+        if self.electricity2 % int((100 + self.powergenerator) / ((self.usage * 1.5) + 1)) == 0:
+            self.electricity -= 1
         if self.sec % 187 == 0:
             self.min += 15
         if self.min % 60 == 0:
@@ -130,23 +145,60 @@ class Main():
         self.c.itemconfig(self.electext,
                           text="{0}%   :    {1} U".format(self.electricity,
                                                           self.usage))
-        self.bowlyattack = randint(0, 825)
+        self.bowlyattack = randint(0, 855)
         if self.bowlyattack == 5:
             self.c.itemconfig(self.currentcam, image=self.bowlycama)
             self.incama = True
         if self.incama:
-            self.bowlyattack2 = randint(0, 675)
+            self.bowlyattack2 = randint(0, 955)
         if (self.incama and self.bowlyattack2 == 5 and not self.rdoor_closed)\
-                or self.death:
+                or self.dead:
             self.c.itemconfig(self.currentcam, state="hidden")
             self.c.itemconfig(self.cammap, state="hidden")
             self.c.itemconfig(self.bowlyhead, state="normal")
             self.root.after(3000, self.game_over_screen)
-        elif self.rdoor_closed and self.bowlyattack2 == 5:
+        elif self.rdoor_closed and self.bowlyattack2 == 5 or\
+                self.attackTimer == 500:
             self.incama = False
             self.c.itemconfig(self.currentcam, image=self.cama)
+        if self.electricity < 0 or self.electricity > 120:
+            self.youhavewon = True
+            if self.electricity >= 120:
+                self.flash = self.c.create_rectangle(0, 0,
+                                                     self.width, self.height,
+                                                     fill="#ff0000")
+                i = 1
+                while i < 20:
+                    self.c.itemconfig(self.flash, fill="#ffffff")
+                    self.c.update()
+                    i += 1
+                    self.c.itemconfig(self.flash, fill="#ff0000")
+                    self.c.update()
+                self.c.itemconfig(self.flash, fill="#ffffff")
+                self.c.update()
+                self.c.itemconfig(self.flash, fill="#ff0000")
+                self.c.update()
+                self.c.itemconfig(self.flash, fill="#ffffff")
+                self.c.update()
+                self.c.itemconfig(self.flash, fill="#ff0000")
+                self.c.update()
+                self.c.itemconfig(self.flash, fill="#ffffff")
+                self.c.update()
+                self.c.itemconfig(self.flash, fill="#ff0000")
+                self.c.update()
+                self.c.itemconfig(self.flash, fill="#000000")
+                self.c.update()
+            self.c.itemconfig(self.electext)
+            self.rdoor_closed = True
+            self.ldoor_closed = True
+            self.closeleft(event=None)
+            self.closeright(event=None)
+            self.c.itemconfig(self.electext,
+                              text="0%    :    0 U")
+            self.root.after(20000, self.death)
         if not self.youhavewon:
             self.root.after(10, self.eachcsec)
+
         if self.hour == 24:
             self.WIN()
 
@@ -156,6 +208,12 @@ class Main():
     def motion(self, event):
         self.x = event.x
         self.y = event.y
+
+    def death(self):
+        self.c.itemconfig(self.currentcam, state="hidden")
+        self.c.itemconfig(self.cammap, state="hidden")
+        self.c.itemconfig(self.bowlyhead, state="normal")
+        self.root.after(3000, self.game_over_screen)
 
     def game_over_screen(self):
         self.c.create_rectangle(0, 0, self.width, self.height,
@@ -177,6 +235,15 @@ class Main():
         def hour_add(self):
             self.hour += 1
             self.c.itemconfig()
+
+    def solarpanel(self, event=None):
+        if self.powergenerator == 0:
+            self.powergenerator = 100
+        else:
+            self.powergenerator = 0
+
+    def click(self, event=None):
+        print(event.x, event.y)
 
 
 game = Main()
