@@ -29,10 +29,12 @@ class Main():
         self.camson = False
         self.rdoor_closed = False
         self.ldoor_closed = False
+        self.fdoor_closed = False
         self.left = True
         self.hour = 12
         self.attackTimer = 0
-        # Image references `yay'
+        self.currentcamvar = "A"
+        # Image references 'yay'
         self.bowlybodyB = PhotoImage(file="bowly_chains.png")
         # Unused line /\
         #             |
@@ -42,7 +44,7 @@ class Main():
         self.cama = PhotoImage(file="camA.png")
         self.bowlycama = PhotoImage(file="camAbowly.png")
         self.camb = PhotoImage(file="camB.png")
-        self.camTransfer = PhotoImage(file="camTransfer.png")
+        self.camTransferImg = PhotoImage(file="camTransfer.png")
         # Sound references
         # Images, text, etc...
         self.background = self.c.create_rectangle(0, 0, self.width,
@@ -57,6 +59,7 @@ class Main():
                                            self.width - 230, self.height - 150,
                                            self.width - 30, self.height - 100,
                                            fill="#000000")
+        self.fdoor = self.c.create_rectangle(self.width / 2 - 100, 150, self.width / 2 + 100, self.height - 100, fill="#000000", outline="#000000")
         self.bowlyhead = self.c.create_image(self.width / 2, self.height / 2,
                                              anchor="c", image=self.bowlyheadB,
                                              state="hidden")
@@ -72,8 +75,16 @@ class Main():
                                            self.height - self.height / 9,
                                            anchor="se", image=self.icon,
                                            state="normal")
-        self.camaicon = self.c.create_rectangle(740, 880, 830, 940, fill="#808080", outline="#000000", activeoutline="#ffffff", state="hidden")
-        self.cambicon = self.c.create_rectangle(160, 880, 250, 940, fill="#808080", outline="#000000", activeoutline="#ffffff", state="hidden")
+        self.camaicon = self.c.create_rectangle(740, 880, 830, 940,
+                                                fill="#808080",
+                                                outline="#000000",
+                                                activeoutline="#ffffff",
+                                                state="hidden")
+        self.cambicon = self.c.create_rectangle(160, 880, 250, 940,
+                                                fill="#808080",
+                                                outline="#000000",
+                                                activeoutline="#ffffff",
+                                                state="hidden")
         self.c.tag_bind(self.camicon, "<Enter>", self.cams_on)
         self.incama = False
         self.c.tag_bind(self.camicon, "<Leave>", self.cams_off)
@@ -82,10 +93,13 @@ class Main():
         self.root.bind("s", self.solarpanel)
         self.root.bind("a", self.closeleft)
         self.root.bind("d", self.closeright)
+        self.root.bind("w", self.closefront)
         self.root.bind("<Escape>", self.kr)
         self.root.bind("<Button-1>", self.click)
-        self.c.tag_bind(self.camaicon, "<Button-1>", lambda e: self.changeCamera("A"))
-        self.c.tag_bind(self.cambicon, "<Button-1>", lambda e: self.changeCamera("B"))
+        self.c.tag_bind(self.camaicon, "<Button-1>",
+                        lambda e: self.camTransfer("A"))
+        self.c.tag_bind(self.cambicon, "<Button-1>",
+                        lambda e: self.camTransfer("B"))
         self.root.after(10, self.eachcsec)
         self.root.mainloop()
 
@@ -108,6 +122,16 @@ class Main():
         else:
             self.rdoor_closed = False
             self.c.itemconfig(self.rdoor, fill="#000000")
+            self.usage -= 1
+
+    def closefront(self, event=None):
+        if not self.fdoor_closed:
+            self.fdoor_closed = True
+            self.c.itemconfig(self.fdoor, fill="#505050")
+            self.usage += 1
+        else:
+            self.fdoor_closed = False
+            self.c.itemconfig(self.fdoor, fill="#000000")
             self.usage -= 1
 
     def die(self, event=""):
@@ -140,7 +164,8 @@ class Main():
             self.attackTimer += 1
         self.sec += 1
         self.electricity2 += 1
-        if self.electricity2 % int((100 + self.powergenerator) / ((self.usage * 2) + 1)) == 0:
+        if self.electricity2 % \
+                int((100 + self.powergenerator) / ((self.usage * 2) + 1)) == 0:
             self.electricity -= 1
         if self.sec % 187 == 0:
             self.min += 15
@@ -154,20 +179,24 @@ class Main():
                                                           self.usage))
         self.bowlyattack = randint(0, 855)
         if self.bowlyattack == 5:
-            self.c.itemconfig(self.currentcam, image=self.bowlycama)
+            if self.currentcamvar == "A":
+                self.c.itemconfig(self.currentcam, image=self.bowlycama)
             self.incama = True
         if self.incama:
             self.bowlyattack2 = randint(0, 955)
         if (self.incama and self.bowlyattack2 == 5 and not self.rdoor_closed)\
                 or self.dead:
             self.c.itemconfig(self.currentcam, state="hidden")
+            self.c.itemconfig(self.camaicon, state="hidden")
+            self.c.itemconfig(self.cambicon, state="hidden")
             self.c.itemconfig(self.cammap, state="hidden")
             self.c.itemconfig(self.bowlyhead, state="normal")
             self.root.after(3000, self.game_over_screen)
         elif (self.rdoor_closed and self.bowlyattack2 == 5) or\
                 (self.attackTimer == 500 and self.rdoor_closed):
             self.incama = False
-            self.c.itemconfig(self.currentcam, image=self.cama)
+            if self.currentcamvar == "A":
+                self.c.itemconfig(self.currentcam, image=self.cama)
         if self.electricity < 0 or self.electricity > 120:
             self.youhavewon = True
             if self.electricity >= 120:
@@ -251,18 +280,21 @@ class Main():
 
     def click(self, event=None):
         print(event.x, event.y)
+        # pass
 
     def changeCamera(self, camera):
         if camera == "A":
+            self.currentcamvar = "A"
             if self.incama:
                 self.c.itemconfig(self.currentcam, image=self.bowlycama)
             else:
                 self.c.itemconfig(self.currentcam, image=self.cama)
         elif camera == "B":
+            self.currentcamvar = "B"
             self.c.itemconfig(self.currentcam, image=self.camb)
 
     def camTransfer(self, camera):
-        self.c.itemconfig(self.currentcam, image=self.camTransfer)
+        self.c.itemconfig(self.currentcam, image=self.camTransferImg)
         self.c.update()
         self.root.after(100, lambda: self.changeCamera(camera))
 
