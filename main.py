@@ -59,7 +59,7 @@ class Main():
                                            self.width - 230, self.height - 150,
                                            self.width - 30, self.height - 100,
                                            fill="#000000")
-        self.fdoor = self.c.create_rectangle(self.width / 2 - 100, 150, self.width / 2 + 100, self.height - 100, fill="#000000", outline="#000000")
+        self.fdoor = self.c.create_rectangle(self.width / 2 - 100, 150, self.width / 2 + 100, self.height - 200, fill="#000000", outline="#606060")
         self.bowlyhead = self.c.create_image(self.width / 2, self.height / 2,
                                              anchor="c", image=self.bowlyheadB,
                                              state="hidden")
