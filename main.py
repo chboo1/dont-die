@@ -45,6 +45,8 @@ class Main():
         self.bowlycama = PhotoImage(file="camAbowly.png")
         self.camb = PhotoImage(file="camB.png")
         self.camTransferImg = PhotoImage(file="camTransfer.png")
+        self.bowlyTimer = 0
+        self.levelBowly = 1
         # Sound references
         # Images, text, etc...
         self.background = self.c.create_rectangle(0, 0, self.width,
@@ -127,11 +129,11 @@ class Main():
     def closefront(self, event=None):
         if not self.fdoor_closed:
             self.fdoor_closed = True
-            self.c.itemconfig(self.fdoor, fill="#505050")
+            self.c.itemconfig(self.fdoor, fill="#505050", outline="#505050")
             self.usage += 1
         else:
             self.fdoor_closed = False
-            self.c.itemconfig(self.fdoor, fill="#000000")
+            self.c.itemconfig(self.fdoor, fill="#000000", outline="#000000")
             self.usage -= 1
 
     def die(self, event=""):
@@ -165,7 +167,7 @@ class Main():
         self.sec += 1
         self.electricity2 += 1
         if self.electricity2 % \
-                int((100 + self.powergenerator) / ((self.usage * 2) + 1)) == 0:
+                int((150 + self.powergenerator) / ((self.usage * 2) + 1)) == 0:
             self.electricity -= 1
         if self.sec % 187 == 0:
             self.min += 15
@@ -177,26 +179,29 @@ class Main():
         self.c.itemconfig(self.electext,
                           text="{0}%   :    {1} U".format(self.electricity,
                                                           self.usage))
-        self.bowlyattack = randint(0, 855)
-        if self.bowlyattack == 5:
-            if self.currentcamvar == "A":
-                self.c.itemconfig(self.currentcam, image=self.bowlycama)
-            self.incama = True
-        if self.incama:
-            self.bowlyattack2 = randint(0, 955)
-        if (self.incama and self.bowlyattack2 == 5 and not self.rdoor_closed)\
-                or self.dead:
-            self.c.itemconfig(self.currentcam, state="hidden")
-            self.c.itemconfig(self.camaicon, state="hidden")
-            self.c.itemconfig(self.cambicon, state="hidden")
-            self.c.itemconfig(self.cammap, state="hidden")
-            self.c.itemconfig(self.bowlyhead, state="normal")
-            self.root.after(3000, self.game_over_screen)
-        elif (self.rdoor_closed and self.bowlyattack2 == 5) or\
-                (self.attackTimer == 500 and self.rdoor_closed):
-            self.incama = False
-            if self.currentcamvar == "A":
-                self.c.itemconfig(self.currentcam, image=self.cama)
+        self.bowlyTimer += 1
+        if self.bowlyTimer == 150:
+            self.bowlyTimer = 0
+            _bowlyTimer = randint(0, 11 - self.levelBowly)
+            _bowlyTimer2 = randint(0, 6 - max(0, self.levelBowly))
+            if not self.incama:
+                if _bowlyTimer == 5:
+                        if self.currentcamvar == "A":
+                            self.c.itemconfig(self.currentcam, image=self.bowlycama)
+                        self.incama = True
+            else:
+                if _bowlyTimer == 2:
+                    if not self.rdoor_closed:
+                        self.c.itemconfig(self.currentcam, state="hidden")
+                        self.c.itemconfig(self.camaicon, state="hidden")
+                        self.c.itemconfig(self.cambicon, state="hidden")
+                        self.c.itemconfig(self.cammap, state="hidden")
+                        self.c.itemconfig(self.bowlyhead, state="normal")
+                        self.root.after(3000, self.game_over_screen)
+                    else:
+                        self.incama = False
+                        if self.currentcamvar == "A":
+                            self.c.itemconfig(self.currentcam, image=self.cama)
         if self.electricity < 0 or self.electricity > 120:
             self.youhavewon = True
             if self.electricity >= 120:
@@ -249,6 +254,8 @@ class Main():
         self.c.itemconfig(self.currentcam, state="hidden")
         self.c.itemconfig(self.cammap, state="hidden")
         self.c.itemconfig(self.bowlyhead, state="normal")
+        self.c.tag_unbind(self.camicon, "<Enter>")
+        self.c.tag_unbind(self.camicon, "<Leave>")
         self.root.after(3000, self.game_over_screen)
 
     def game_over_screen(self):
@@ -279,8 +286,7 @@ class Main():
             self.powergenerator = 0
 
     def click(self, event=None):
-        print(event.x, event.y)
-        # pass
+        pass
 
     def changeCamera(self, camera):
         if camera == "A":
